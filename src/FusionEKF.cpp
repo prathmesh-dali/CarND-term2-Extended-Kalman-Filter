@@ -38,7 +38,17 @@ FusionEKF::FusionEKF() {
     * Set the process and measurement noises
   */
   H_laser_ << 1, 0, 0, 0,
-              0, 1, 0, 0;  
+              0, 1, 0, 0;
+
+  Hj_ << 1, 0, 0, 0,
+        0, 0, 0, 0,
+        0 ,0 ,0 ,0 ;  
+
+  ekf_.P_ = MatrixXd(4, 4);
+  ekf_.P_ << 1.0, 0, 0, 0,
+			  0, 1.0, 0, 0,
+			  0, 0, 1000.0, 0,
+			  0, 0, 0, 1000.0;
 }
 
 /**
@@ -60,22 +70,11 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
       * Remember: you'll need to convert radar from polar to cartesian coordinates.
     */
     // first measurement
-    cout << "EKF 1234: " << endl;
-    cout << "Initialization Done: x_ " << endl;
+    cout << "EKF : " << endl;
     ekf_.x_ = VectorXd(4);
-    cout << "Initialization Done: x_ " << endl;
-    ekf_.x_ << 1, 1, 1, 1;
-    cout << "Initialization Done: x_ " << endl;
     ekf_.Q_ = MatrixXd(4, 4);
-    cout << "Initialization Done: Q_" << endl;
     ekf_.F_ = MatrixXd(4, 4);
-    cout << "Initialization Done: F_" << endl;
-    ekf_.P_ = MatrixXd(4, 4);
-    cout << "Initialization Done: P_" << endl;
-    ekf_.P_ << 1, 0, 0, 0,
-			  0, 1, 0, 0,
-			  0, 0, 1000, 0,
-			  0, 0, 0, 1000;
+    
     cout << "Initialization Done: P_ done" << endl;
     if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
       /**
@@ -114,18 +113,16 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
   float noise_ay = 9;
   double dt = (measurement_pack.timestamp_ - previous_timestamp_) / 1000000.0;	//dt - expressed in seconds
 	previous_timestamp_ = measurement_pack.timestamp_;
-
-	ekf_.Q_ <<  pow(dt,4)/4*noise_ax, 0, pow(dt,3)/2*noise_ax, 0,
-			   0, pow(dt,4)/4*noise_ay, 0, pow(dt,3)/2*noise_ay,
-			   pow(dt,3)/2*noise_ax, 0, pow(dt,2)*noise_ax, 0,
-			   0, pow(dt,3)/2*noise_ay, 0, pow(dt,2)*noise_ay;
+  
+	ekf_.Q_ <<  (pow(dt,4)/4)*noise_ax, 0, (pow(dt,3)/2)*noise_ax, 0,
+			   0, (pow(dt,4)/4)*noise_ay, 0, (pow(dt,3)/2)*noise_ay,
+			   (pow(dt,3)/2)*noise_ax, 0, pow(dt,2)*noise_ax, 0,
+			   0, (pow(dt,3)/2)*noise_ay, 0, pow(dt,2)*noise_ay;
   ekf_.F_ << 1, 0, dt, 0,
             0, 1, 0, dt,
             0, 0, 1, 0,
             0, 0, 0, 1;
-cout << "Before Predict" << endl;
   ekf_.Predict();
-cout << "After Predict" << endl;
   /*****************************************************************************
    *  Update
    ****************************************************************************/

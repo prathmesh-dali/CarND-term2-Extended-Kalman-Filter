@@ -60,20 +60,17 @@ MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
 	double vy = x_state(3);
 
 	//TODO: YOUR CODE HERE 
+	double pxpy = px*px+py*py;
+	double sqrtpxpy = sqrt(pxpy);
+	double threebytwo = pxpy*sqrtpxpy;
 
 	//check division by zero
-	if(px<0.0001 & py<0.0001 ){
+	if(fabs(pxpy)<0.0001){
 	    cout<<"CalculateJacobian() - Error - Division by zero";
 	} else {
-	    double pxpy = px*px+py*py;
-	    Hj(0,0) = px/sqrt(pxpy);
-	    Hj(0,1) = py/sqrt(pxpy);
-	    Hj(1,0) = -py/pxpy;
-	    Hj(1,1) = px/pxpy;
-	    Hj(2,0) = py* (vx*py-px*vy) / pow(pxpy,3/2);
-	    Hj(2,1) = px* (vy*px-py*vx) / pow(pxpy,3/2);
-	    Hj(2,2) = px/sqrt(pxpy);
-	    Hj(2,3) = py/sqrt(pxpy);
+	    Hj<< px/sqrtpxpy, py/sqrtpxpy, 0, 0, 
+			-py/pxpy, px/pxpy, 0, 0,
+			py* (vx*py-px*vy) / threebytwo, px* (vy*px-py*vx) / threebytwo, px/sqrtpxpy, py/sqrtpxpy;
 	}
   return Hj;
 }
